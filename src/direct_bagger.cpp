@@ -14,7 +14,7 @@
  */
 
 #include <ros/ros.h>
-#include <rosbag/bag_direct.h>
+#include <rosbag_direct_write/direct_bag.h>
 
 #include <sensor_msgs/Image.h>
 
@@ -23,13 +23,15 @@
 /** Specialized Functions to take advantage of direct memory writing **/
 
 template<> bool
-rosbag::has_direct_data<sensor_msgs::Image>()
+rosbag_direct_write::has_direct_data<sensor_msgs::Image>()
 {
   return true;
 }
 
 template<> void
-rosbag::serialize_to_buffer(VectorBuffer &buffer, const sensor_msgs::Image &msg)
+rosbag_direct_write::serialize_to_buffer(
+  VectorBuffer &buffer,
+  const sensor_msgs::Image &msg)
 {
   size_t buffer_length = ros::serialization::serializationLength(msg);
   // Minus size of image data
@@ -49,11 +51,13 @@ rosbag::serialize_to_buffer(VectorBuffer &buffer, const sensor_msgs::Image &msg)
   ros::serialization::serialize(s, msg.is_bigendian);
   ros::serialization::serialize(s, msg.step);
   // Write the size of the data which comes next in serialize_to_file
-  write_to_buffer(buffer, msg.data.size(), 4);
+  impl::write_to_buffer(buffer, msg.data.size(), 4);
 }
 
 template<> void
-rosbag::serialize_to_file(DirectFile &file, const sensor_msgs::Image &msg)
+rosbag_direct_write::serialize_to_file(
+  DirectFile &file,
+  const sensor_msgs::Image &msg)
 {
   assert((file.get_offset() % 4096) == 0);
   // Write the data directly to the file from the memory
@@ -66,7 +70,7 @@ int main(int argc, char *argv[])
 {
   ros::init(argc, argv, "direct_bagger");
   auto n = ros::NodeHandle();
-  rosbag::DirectBag bag("test_direct.bag");
+  rosbag_direct_write::DirectBag bag("test_direct.bag");
 
   size_t number_of_iterations = get_number_of_iterations(argc, argv);
 
