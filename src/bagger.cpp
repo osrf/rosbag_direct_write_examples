@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
   sensor_msgs::Image image;
   image.header.stamp = ros::Time::now();
   image.header.frame_id = "/camera";
-  image.height = width;
-  image.width = height;
+  image.height = height;
+  image.width = width;
   image.encoding = "Encoding 1";
   image.is_bigendian = true;
   image.step = 1;
